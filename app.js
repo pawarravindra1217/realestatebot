@@ -9,8 +9,8 @@ require('dotenv').config();
 app.post('/webhook', async (req, res) => {
   const intent = req.body.queryResult.intent.displayName;
   const params = req.body.queryResult.parameters;
-   console.log(`Intent: ${intent}`);
-  console.log(`User said: ${query}`);
+  console.log(`Intent: ${intent}`);
+  console.log(`User said: ${params}`);
 
   if (intent === 'lead.capture') {
     const leadData = {
