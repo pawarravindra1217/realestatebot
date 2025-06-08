@@ -9,28 +9,54 @@ require('dotenv').config();
 app.post('/webhook', async (req, res) => {
   const intent = req.body.queryResult.intent.displayName;
   const params = req.body.queryResult.parameters;
-  console.log(`Intent: ${intent}`);
-  console.log(`User said: ${params}`);
 
   if (intent === 'lead.capture') {
-    const params = req.body.queryResult.parameters;
-    
-    // Sample payload
+    // Check for missing params
+    if (!params.location || params.location.length === 0) {
+      return res.json({
+        fulfillmentText: "Which city or location are you interested in?"
+      });
+    }
+    if (!params.PropertyType || params.PropertyType.length === 0) {
+      return res.json({
+        fulfillmentText: "What type of property are you looking for?"
+      });
+    }
+    if (!params.Budget) {
+      return res.json({
+        fulfillmentText: "What’s your budget?"
+      });
+    }
+    if (!params.Name) {
+      return res.json({
+        fulfillmentText: "What is your full name?"
+      });
+    }
+    if (!params.MobileNo) {
+      return res.json({
+        fulfillmentText: "What is your phone number?"
+      });
+    }
+    if (!params.Email) {
+      return res.json({
+        fulfillmentText: "What is your email address?"
+      });
+    }
+
+    // All params present - save lead and respond
     const lead = {
-      name: params.name,
-      email: params.email,
-      phone: params.phone,
+      name: params.Name,
+      email: params.Email,
+      phone: params.MobileNo,
       location: params.location,
-      property_type: params.property_type,
-      budget: params.budget
+      property_type: params.PropertyType,
+      budget: params.Budget
     };
 
-
-    // Save to CRM (Your own DB or API)
     await saveLeadToCRM(lead);
 
     return res.json({
-      fulfillmentText: `Thanks! We've noted your interest in a ${params.property_type} at ${params.location} with a budget of ${params.budget}. Our agent will contact you soon.`
+      fulfillmentText: `Thanks! We've noted your interest in a ${params.PropertyType} at ${params.location} with a budget of ${params.Budget}. Our agent will contact you soon.`
     });
   }
 
