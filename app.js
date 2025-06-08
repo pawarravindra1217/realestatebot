@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const app = express();
 app.use(bodyParser.json());
+require('dotenv').config();
+
 
 app.post('/webhook', async (req, res) => {
   const intent = req.body.queryResult.intent.displayName;
@@ -32,4 +34,6 @@ async function saveLeadToCRM(lead) {
   console.log('Saving lead:', lead);
 }
 
-app.listen(3200, () => console.log('Webhook server running on port 3000'));
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => console.log('Webhook server running on port 3000'));
