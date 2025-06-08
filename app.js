@@ -13,15 +13,21 @@ app.post('/webhook', async (req, res) => {
   console.log(`User said: ${params}`);
 
   if (intent === 'lead.capture') {
-    const leadData = {
-      name: "Lead from Bot",
+    const params = req.body.queryResult.parameters;
+    
+    // Sample payload
+    const lead = {
+      name: params.name,
+      email: params.email,
+      phone: params.phone,
       location: params.location,
       property_type: params.property_type,
       budget: params.budget
     };
 
+
     // Save to CRM (Your own DB or API)
-    await saveLeadToCRM(leadData);
+    await saveLeadToCRM(lead);
 
     return res.json({
       fulfillmentText: `Thanks! We've noted your interest in a ${params.property_type} at ${params.location} with a budget of ${params.budget}. Our agent will contact you soon.`
