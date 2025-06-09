@@ -8,6 +8,33 @@ app.use(bodyParser.json());
 app.post('/webhook', async (req, res) => {
   const intent = req.body.queryResult.intent.displayName;
   const params = req.body.queryResult.parameters;
+// Handle Default Welcome Intent to show suggestion chips
+if (intent === 'Default Welcome Intent') {
+  return res.json({
+    fulfillmentMessages: [
+      {
+        text: { text: ['Hi there! How can I assist you today?'] }
+      },
+      {
+        payload: {
+          richContent: [
+            [
+              {
+                type: 'chips',
+                options: [
+                  { text: 'I want to buy a flat' },
+                  { text: 'I\'m looking for a property' },
+                  { text: 'I want a house in Bangalore' },
+                  { text: 'Need a 2BHK in Pune' }
+                ]
+              }
+            ]
+          ]
+        }
+      }
+    ]
+  });
+}
 
   if (intent === 'lead.capture') {
     const {
@@ -18,6 +45,46 @@ app.post('/webhook', async (req, res) => {
       PropertyType,
       Budget
     } = params;
+
+     // 4. Ask for full name
+    if (!Name) {
+      return res.json({
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your full name?']
+            }
+          }
+        ]
+      });
+    }
+
+    // 5. Ask for mobile number
+    if (!MobileNo) {
+      return res.json({
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your phone number?']
+            }
+          }
+        ]
+      });
+    }
+
+    // 6. Ask for email address
+    if (!Email) {
+      return res.json({
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your email address?']
+            }
+          }
+        ]
+      });
+    }
+
 
     // 1. Ask for location
     if (!location || location.length === 0) {
@@ -92,45 +159,21 @@ app.post('/webhook', async (req, res) => {
       });
     }
 
-    // 4. Ask for full name
-    if (!Name) {
-      return res.json({
-        fulfillmentMessages: [
-          {
-            text: {
-              text: ['What is your full name?']
-            }
-          }
-        ]
-      });
-    }
+   // Validate mobile number
+const mobileRegex = /^[6-9]\d{9}$/;
+if (!MobileNo || !mobileRegex.test(MobileNo)) {
+  return res.json({
+    fulfillmentText: 'Please enter a valid 10-digit Indian mobile number.'
+  });
+}
 
-    // 5. Ask for mobile number
-    if (!MobileNo) {
-      return res.json({
-        fulfillmentMessages: [
-          {
-            text: {
-              text: ['What is your phone number?']
-            }
-          }
-        ]
-      });
-    }
-
-    // 6. Ask for email address
-    if (!Email) {
-      return res.json({
-        fulfillmentMessages: [
-          {
-            text: {
-              text: ['What is your email address?']
-            }
-          }
-        ]
-      });
-    }
-
+// Validate email
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if (!Email || !emailRegex.test(Email)) {
+  return res.json({
+    fulfillmentText: 'Please enter a valid email address.'
+  });
+}
     // 7. All parameters collected — Save the lead
     const lead = {
       name: Name,
@@ -158,7 +201,9 @@ app.post('/webhook', async (req, res) => {
   }
 
   // Default fallback
-  res.json({ fulfillmentText: 'Okay, noted.' });
+  res.json({
+  fulfillmentText: 'Sorry, I didn’t quite get that. Could you please rephrase or try again?'
+});
 });
 
 async function saveLeadToCRM(lead) {
