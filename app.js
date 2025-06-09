@@ -1,17 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const axios = require('axios');
-const app = express();
-app.use(bodyParser.json());
 require('dotenv').config();
 
+const app = express();
+app.use(bodyParser.json());
 
 app.post('/webhook', async (req, res) => {
   const intent = req.body.queryResult.intent.displayName;
   const params = req.body.queryResult.parameters;
 
   if (intent === 'lead.capture') {
-    // Destructure parameters
     const {
       Name,
       Email,
@@ -21,8 +19,7 @@ app.post('/webhook', async (req, res) => {
       Budget
     } = params;
 
-    // Check each required param, prompt with quick replies where applicable
-
+    // 1. Ask for location
     if (!location || location.length === 0) {
       return res.json({
         fulfillmentMessages: [
@@ -32,16 +29,27 @@ app.post('/webhook', async (req, res) => {
             }
           },
           {
-            platform: 'DIALOGFLOW_MESSENGER',
-            quickReplies: {
-              title: 'Please select a location:',
-              quickReplies: ['Pune', 'Bangalore', 'Mumbai', 'Delhi']
+            payload: {
+              richContent: [
+                [
+                  {
+                    type: 'chips',
+                    options: [
+                      { text: 'Pune' },
+                      { text: 'Bangalore' },
+                      { text: 'Mumbai' },
+                      { text: 'Delhi' }
+                    ]
+                  }
+                ]
+              ]
             }
           }
         ]
       });
     }
 
+    // 2. Ask for property type
     if (!PropertyType || PropertyType.length === 0) {
       return res.json({
         fulfillmentMessages: [
@@ -51,58 +59,112 @@ app.post('/webhook', async (req, res) => {
             }
           },
           {
-             platform: 'DIALOGFLOW_MESSENGER',
-            quickReplies: {
-              title: 'Choose a property type:',
-              quickReplies: ['Flat', 'House', 'Villa', 'Studio']
+            payload: {
+              richContent: [
+                [
+                  {
+                    type: 'chips',
+                    options: [
+                      { text: 'Flat' },
+                      { text: 'House' },
+                      { text: 'Villa' },
+                      { text: 'Studio' }
+                    ]
+                  }
+                ]
+              ]
             }
           }
         ]
       });
     }
 
+    // 3. Ask for budget
     if (!Budget) {
       return res.json({
-        fulfillmentText: 'What’s your budget?'
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What’s your budget? (in ₹)']
+            }
+          }
+        ]
       });
     }
 
+    // 4. Ask for full name
     if (!Name) {
       return res.json({
-        fulfillmentText: 'What is your full name?'
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your full name?']
+            }
+          }
+        ]
       });
     }
 
+    // 5. Ask for mobile number
     if (!MobileNo) {
       return res.json({
-        fulfillmentText: 'What is your phone number?'
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your phone number?']
+            }
+          }
+        ]
       });
     }
 
+    // 6. Ask for email address
     if (!Email) {
       return res.json({
-        fulfillmentText: 'What is your email address?'
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your email address?']
+            }
+          }
+        ]
       });
     }
 
-    // If all parameters present, process lead (save or do other tasks)
-    const lead = { Name, Email, MobileNo, location, PropertyType, Budget };
-    console.log('Lead info:', lead);
+    // 7. All parameters collected — Save the lead
+    const lead = {
+      name: Name,
+      email: Email,
+      phone: MobileNo,
+      location,
+      property_type: PropertyType,
+      budget: Budget
+    };
+
+    console.log('Saving lead:', lead);
     await saveLeadToCRM(lead);
 
     return res.json({
-      fulfillmentText: `Thanks! We've noted your interest in a ${params.PropertyType} at ${params.location} with a budget of ${params.Budget}. Our agent will contact you soon.`
+      fulfillmentMessages: [
+        {
+          text: {
+            text: [
+              `Thanks ${Name}! We've noted your interest in a ${PropertyType} at ${location} with a budget of ₹${Budget}. Our agent will contact you soon.`
+            ]
+          }
+        }
+      ]
     });
   }
 
-  res.json({ fulfillmentText: "OK" });
+  // Default fallback
+  res.json({ fulfillmentText: 'Okay, noted.' });
 });
 
 async function saveLeadToCRM(lead) {
-  // Replace with your actual CRM logic (DB insert or API call)
-  console.log('Saving lead:', lead);
+  // Replace this with actual logic
+  console.log('>> Lead saved to CRM:', lead);
 }
 
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => console.log('Webhook server running on port 3000'));
+app.listen(PORT, () => console.log(`Webhook server running on port ${PORT}`));
