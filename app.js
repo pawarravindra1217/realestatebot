@@ -46,46 +46,6 @@ if (intent === 'Default Welcome Intent') {
       Budget
     } = params;
 
-     // 4. Ask for full name
-    if (!Name) {
-      return res.json({
-        fulfillmentMessages: [
-          {
-            text: {
-              text: ['What is your full name?']
-            }
-          }
-        ]
-      });
-    }
-
-    // 5. Ask for mobile number
-    if (!MobileNo) {
-      return res.json({
-        fulfillmentMessages: [
-          {
-            text: {
-              text: ['What is your phone number?']
-            }
-          }
-        ]
-      });
-    }
-
-    // 6. Ask for email address
-    if (!Email) {
-      return res.json({
-        fulfillmentMessages: [
-          {
-            text: {
-              text: ['What is your email address?']
-            }
-          }
-        ]
-      });
-    }
-
-
     // 1. Ask for location
     if (!location || location.length === 0) {
       return res.json({
@@ -159,21 +119,45 @@ if (intent === 'Default Welcome Intent') {
       });
     }
 
-   // Validate mobile number
-const mobileRegex = /^[6-9]\d{9}$/;
-if (!MobileNo || !mobileRegex.test(MobileNo)) {
-  return res.json({
-    fulfillmentText: 'Please enter a valid 10-digit Indian mobile number.'
-  });
-}
+    // 4. Ask for full name
+    if (!Name) {
+      return res.json({
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your full name?']
+            }
+          }
+        ]
+      });
+    }
 
-// Validate email
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-if (!Email || !emailRegex.test(Email)) {
-  return res.json({
-    fulfillmentText: 'Please enter a valid email address.'
-  });
-}
+    // 5. Ask for mobile number
+    if (!MobileNo) {
+      return res.json({
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your phone number?']
+            }
+          }
+        ]
+      });
+    }
+
+    // 6. Ask for email address
+    if (!Email) {
+      return res.json({
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What is your email address?']
+            }
+          }
+        ]
+      });
+    }
+
     // 7. All parameters collected — Save the lead
     const lead = {
       name: Name,
@@ -201,9 +185,7 @@ if (!Email || !emailRegex.test(Email)) {
   }
 
   // Default fallback
-  res.json({
-  fulfillmentText: 'Sorry, I didn’t quite get that. Could you please rephrase or try again?'
-});
+  res.json({ fulfillmentText: 'Okay, noted.' });
 });
 
 async function saveLeadToCRM(lead) {
