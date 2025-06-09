@@ -32,6 +32,7 @@ app.post('/webhook', async (req, res) => {
             }
           },
           {
+            platform: 'DIALOGFLOW_MESSENGER',
             quickReplies: {
               title: 'Please select a location:',
               quickReplies: ['Pune', 'Bangalore', 'Mumbai', 'Delhi']
@@ -50,6 +51,7 @@ app.post('/webhook', async (req, res) => {
             }
           },
           {
+             platform: 'DIALOGFLOW_MESSENGER',
             quickReplies: {
               title: 'Choose a property type:',
               quickReplies: ['Flat', 'House', 'Villa', 'Studio']
