@@ -11,48 +11,81 @@ app.post('/webhook', async (req, res) => {
   const params = req.body.queryResult.parameters;
 
   if (intent === 'lead.capture') {
-    // Check for missing params
-    if (!params.location || params.location.length === 0) {
+    // Destructure parameters
+    const {
+      Name,
+      Email,
+      MobileNo,
+      location,
+      PropertyType,
+      Budget
+    } = params;
+
+    // Check each required param, prompt with quick replies where applicable
+
+    if (!location || location.length === 0) {
       return res.json({
-        fulfillmentText: "Which city or location are you interested in?"
-      });
-    }
-    if (!params.PropertyType || params.PropertyType.length === 0) {
-      return res.json({
-        fulfillmentText: "What type of property are you looking for?"
-      });
-    }
-    if (!params.Budget) {
-      return res.json({
-        fulfillmentText: "What’s your budget?"
-      });
-    }
-    if (!params.Name) {
-      return res.json({
-        fulfillmentText: "What is your full name?"
-      });
-    }
-    if (!params.MobileNo) {
-      return res.json({
-        fulfillmentText: "What is your phone number?"
-      });
-    }
-    if (!params.Email) {
-      return res.json({
-        fulfillmentText: "What is your email address?"
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['Which city or location are you interested in?']
+            }
+          },
+          {
+            quickReplies: {
+              title: 'Please select a location:',
+              quickReplies: ['Pune', 'Bangalore', 'Mumbai', 'Delhi']
+            }
+          }
+        ]
       });
     }
 
-    // All params present - save lead and respond
-    const lead = {
-      name: params.Name,
-      email: params.Email,
-      phone: params.MobileNo,
-      location: params.location,
-      property_type: params.PropertyType,
-      budget: params.Budget
-    };
+    if (!PropertyType || PropertyType.length === 0) {
+      return res.json({
+        fulfillmentMessages: [
+          {
+            text: {
+              text: ['What type of property are you looking for?']
+            }
+          },
+          {
+            quickReplies: {
+              title: 'Choose a property type:',
+              quickReplies: ['Flat', 'House', 'Villa', 'Studio']
+            }
+          }
+        ]
+      });
+    }
 
+    if (!Budget) {
+      return res.json({
+        fulfillmentText: 'What’s your budget?'
+      });
+    }
+
+    if (!Name) {
+      return res.json({
+        fulfillmentText: 'What is your full name?'
+      });
+    }
+
+    if (!MobileNo) {
+      return res.json({
+        fulfillmentText: 'What is your phone number?'
+      });
+    }
+
+    if (!Email) {
+      return res.json({
+        fulfillmentText: 'What is your email address?'
+      });
+    }
+
+    // If all parameters present, process lead (save or do other tasks)
+    const lead = { Name, Email, MobileNo, location, PropertyType, Budget };
+    console.log('Lead info:', lead);
     await saveLeadToCRM(lead);
 
     return res.json({
